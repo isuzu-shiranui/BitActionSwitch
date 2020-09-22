@@ -1,16 +1,11 @@
 #if VRC_SDK_VRCSDK3 && UNITY_EDITOR
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using BitActionSwitch.Editor.Models.Animation;
 using BitActionSwitch.Editor.Models.Animator;
 using BitActionSwitch.Editor.Models.VRCObject;
 using BitActionSwitch.Scripts;
 using UnityEditor;
 using UnityEditor.Animations;
-using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
@@ -38,6 +33,7 @@ namespace BitActionSwitch.Editor.Models
 
         public void Apply()
         {
+            EditorUtility.DisplayProgressBar ("Remove Exiting Items", "", 0f);
             var bitActionSwitchAnimator =
                 new BitActionSwitchAnimatorCreator(this.animatorController);
             bitActionSwitchAnimator.RemoveExistBitActionSwitchAnimator();

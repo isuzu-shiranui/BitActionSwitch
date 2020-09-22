@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BitActionSwitch.Editor.Layout;
 using BitActionSwitch.Editor.Models;
+using BitActionSwitch.Editor.Utility;
 using BitActionSwitch.Scripts;
 using UnityEditor;
 using UnityEditorInternal;
@@ -48,14 +49,26 @@ namespace BitActionSwitch.Editor.Views
 
             this.reorderableList.onReorderCallbackWithDetails += (list, index, newIndex) =>
             {
-                var tmp = this.bitActionSwitchItemDrawers[newIndex];
-                this.bitActionSwitchItemDrawers[newIndex] = this.bitActionSwitchItemDrawers[index];
-                this.bitActionSwitchItemDrawers[index] = tmp;
-
-                var itemTmp = bitActionSwitchGroup.bitActionSwitchItems[newIndex];
-                bitActionSwitchGroup.bitActionSwitchItems[newIndex] = bitActionSwitchGroup.bitActionSwitchItems[index];
-                bitActionSwitchGroup.bitActionSwitchItems[index] = itemTmp;
+                this.bitActionSwitchItemDrawers.ShiftElement(index, newIndex);
             };
+        }
+        
+        public static void Reorder(IList<BitActionSwitchItem> self, int oldIndex, int newIndex)
+        {
+            var element = self[oldIndex];
+            Debug.Log(element.name);
+
+            for (var i = 0; i < self.Count - 1; ++i)
+            {
+                if (i >= oldIndex) self[i] = self[i + 1];
+            }
+            
+            for (var i = self.Count - 1; i > 0; --i)
+            {
+                if (i > newIndex) self[i] = self[i - 1];
+            }
+            
+            self[newIndex] = element;
         }
 
         public void AddItem(GameObject targetAvatar, BitActionSwitchGroup bitActionSwitchGroup)

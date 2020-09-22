@@ -48,8 +48,21 @@ namespace BitActionSwitch.Editor.Models.Animator
                 }));
             
             zeroState.AddTransitionDefaultParam(endState, AnimatorConditionMode.NotEqual, 0.0f, ActionSwitchParameters.ObjectNumParameterName);
-            zeroState.AddTransitionDefaultParam(endState, AnimatorConditionMode.IfNot, 0.0f, ActionSwitchParameters.VRCIsLocalParameterName);
-            
+            zeroState.AddTransitionDefaultParam(endState, new[]
+                    {
+                        new AnimatorCondition
+                        {
+                            mode = AnimatorConditionMode.IfNot,
+                            parameter = ActionSwitchParameters.VRCIsLocalParameterName, 
+                            threshold = 0.0f
+                        },
+                        new AnimatorCondition
+                        {
+                            mode = AnimatorConditionMode.NotEqual,
+                            parameter = bitActionSwitchGroup.variableName, 
+                            threshold = 0
+                        },
+                    });
             loadBitStartState.AddTransitionDefaultParam(zeroState, new[]
             {
                 new AnimatorCondition
@@ -131,8 +144,22 @@ namespace BitActionSwitch.Editor.Models.Animator
 
                     // transition
                     bitState.AddTransitionDefaultParam(endState, AnimatorConditionMode.NotEqual, 0.0f, ActionSwitchParameters.ObjectNumParameterName);
-                    bitState.AddTransitionDefaultParam(endState, AnimatorConditionMode.IfNot, 0.0f, ActionSwitchParameters.VRCIsLocalParameterName);
 
+                    bitState.AddTransitionDefaultParam(endState, new[]
+                    {
+                        new AnimatorCondition
+                        {
+                            mode = AnimatorConditionMode.IfNot,
+                            parameter = ActionSwitchParameters.VRCIsLocalParameterName, 
+                            threshold = 0.0f
+                        },
+                        new AnimatorCondition
+                        {
+                            mode = AnimatorConditionMode.NotEqual,
+                            parameter = bitActionSwitchGroup.variableName, 
+                            threshold = stateIndex
+                        },
+                    });
                     loadBitStartState.AddTransitionDefaultParam(bitState, new[]
                     {
                         new AnimatorCondition
