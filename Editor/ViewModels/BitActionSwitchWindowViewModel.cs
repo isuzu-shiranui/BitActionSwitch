@@ -9,6 +9,7 @@ using UnityEditor.SceneManagement;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using BitActionSwitch.Scripts;
+using UnityEngine;
 
 namespace BitActionSwitch.Editor.ViewModels
 {
@@ -104,44 +105,85 @@ namespace BitActionSwitch.Editor.ViewModels
         /// </summary>
         public DelegateCommand ApplyCommand { get; }
 
+        public bool IsErrorAvatar() => !this.SetError(this.AvatarDescriptor == null);
+
+        public bool IsErrorAnimator() => !this.SetError(this.AnimatorController == null);
+        
+        public bool IsErrorParameter() => !this.SetError(this.ExpressionParameters == null);
+
+        public bool IsErrorWorkingFolder() =>
+            !this.SetError(string.IsNullOrEmpty(this.WorkingFolder) ||
+                          !this.WorkingFolder.StartsWith("Assets"));
+
+        public bool IsErrorExpressionMenu(BitActionSwitchGroup group) => !this.SetError(group.expressionsMenu == null);
+
+        public bool IsErrorVariableName(string variableName)
+        {
+            var flag1 = this.SetError(variableName.HasInvalidChars());
+            if (flag1) return false;
+            
+            var flag2 = this.SetError(this.bitActionSwitch.bitActionSwitchGroups
+                .GroupBy(x => x.variableName.ToLower())
+                .Count(x => x.Count() > 1) > 0);
+            
+            return !flag2;
+        }
+
+        public bool IsErrorGroupItemName(string groupItemName)
+        {
+            var flag1 = this.SetError(groupItemName.HasInvalidChars());
+            if (flag1) return false;
+            
+            var flag2 = this.SetError(this.bitActionSwitch.bitActionSwitchGroups.All(x => x.bitActionSwitchItems
+                .GroupBy(y => y.name.ToLower())
+                .Count(y => y.Count() > 1) > 0));
+            return !flag2;
+        }
+
+        public bool IsErrorRegisterGameObject(GameObject gameObject)
+        {
+            var flag1 = this.SetError(gameObject == null || this.BitActionSwitch.targetAvatar == null);
+            if (flag1) return false;
+            
+            var flag2 = this.SetError(!gameObject.transform.IsChildOf(this.BitActionSwitch.targetAvatar.transform));
+            if (flag2) return false;
+
+            var flag3 = this.SetError(!this.BitActionSwitch.bitActionSwitchGroups
+                .SelectMany(x => x.bitActionSwitchItems.SelectMany(y => y.gameObjects))
+                .Where(x => x != null)
+                .GroupBy(x => x.transform.GetHierarchyPath())
+                .All(x => x.Count() < 2));
+
+            return !flag3;
+        }
+
         /// <summary>
         /// Can apply command execute
         /// </summary>
         // ReSharper disable once CognitiveComplexity
         private bool CanApplyCommandExecute()
         {
-            var flag1 = this.avatarDescriptor != null && this.animatorController != null && this.expressionParameters != null;
-            var flag2 = !string.IsNullOrEmpty(this.BitActionSwitch.workingFolder);
-            var flag3 = this.BitActionSwitch.bitActionSwitchGroups.Count > 0;
-            var flag4 = this.BitActionSwitch.bitActionSwitchGroups.All(x =>
-            {
-                return x.expressionsMenu != null && !string.IsNullOrEmpty(x.variableName) && 
-                       this.BitActionSwitch
-                    .bitActionSwitchGroups.GroupBy(y => y.variableName.ToLower())
-                    .Count(y => y.Count() > 1) == 0 && 
-                       x.bitActionSwitchItems.Count > 0 &&
-                       x.bitActionSwitchItems
-                           .GroupBy(y => y.name.ToLower())
-                           .Count(y => y.Count() > 1) == 0 &&
-                    x.bitActionSwitchItems.All(y =>
-                    {
-                        if (y.registerType == BitActionSwitchItem.RegisterType.GameObject)
-                        {
-                            if (y.gameObjects.Any(z => z == null) ||
-                                !y.gameObjects.All(z => z.transform.IsChildOf(this.avatarDescriptor.transform)) ||
-                                string.IsNullOrEmpty(y.name))
-                            {
-                                return false;
-                            }
+            // var hasError = this.HasError;
+            // this.ClearErrors();
+            // return !hasError;
 
-                            return true;
-                        }
+            var flag = this.IsErrorAvatar() &&
+                this.IsErrorAnimator() &&
+                this.IsErrorParameter() &&
+                this.IsErrorWorkingFolder();
+            
+            var flag2 = this.BitActionSwitch.bitActionSwitchGroups.All(this.IsErrorExpressionMenu);
+            var flag3 = this.BitActionSwitch.bitActionSwitchGroups.All(x => this.IsErrorVariableName(x.variableName));
+            var flag4 = this.BitActionSwitch.bitActionSwitchGroups.SelectMany(x => x.bitActionSwitchItems)
+                .All(x => this.IsErrorGroupItemName(x.name));
 
-                        return y.staticDefaultClip != null && y.staticDefaultClip != null;
-                    });
-            });
-
-            return flag1 && flag2 && flag3 && flag4;
+            var flag5 = this.BitActionSwitch.bitActionSwitchGroups
+                .SelectMany(x => x.bitActionSwitchItems)
+                .Where(x => x.registerType == BitActionSwitchItem.RegisterType.GameObject)
+                .SelectMany(x => x.gameObjects)
+                .All(this.IsErrorRegisterGameObject);
+            
+            return flag && flag2 && flag3 && flag4 && flag5;
         }
 
         /// <summary>

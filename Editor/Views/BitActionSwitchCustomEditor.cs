@@ -25,15 +25,15 @@ namespace BitActionSwitch.Editor.Views
 
             this.bitActionSwitch = (Scripts.BitActionSwitch) this.target;
             this.viewModel.BitActionSwitch = this.bitActionSwitch;
-            
+
             this.reorderableList = new ReorderableList(this.bitActionSwitch.bitActionSwitchGroups, typeof(BitActionSwitchGroup), false, true, true, true)
             {
                 elementHeight = 54,
                 drawElementCallback = this.DrawElement,
-                drawHeaderCallback = this.DrawHeader,
+                drawHeaderCallback = DrawHeader,
             };
             this.bitActionSwitchGroupDrawers = this.bitActionSwitch.bitActionSwitchGroups.Select(x =>
-                new BitActionSwitchGroupDrawer(this.viewModel.AvatarDescriptor == null ? null : this.viewModel.AvatarDescriptor.gameObject, this.bitActionSwitch, x)).ToList();
+                new BitActionSwitchGroupDrawer(this.viewModel, this.viewModel.AvatarDescriptor == null ? null : this.viewModel.AvatarDescriptor.gameObject, x)).ToList();
             
             this.reorderableList.onAddCallback += list => { this.Add(); };
 
@@ -51,6 +51,8 @@ namespace BitActionSwitch.Editor.Views
             {
                 this.Add();
             }
+            
+            this.reorderableList.onCanRemoveCallback = list => list.count > 1;
         }
 
         private void Add()
@@ -60,14 +62,14 @@ namespace BitActionSwitch.Editor.Views
             this.bitActionSwitch.bitActionSwitchGroups.Add(bitActionSwitchGroup);
             var gameObject = this.viewModel.AvatarDescriptor == null ? null : this.viewModel.AvatarDescriptor.gameObject;
             var drawer =
-                new BitActionSwitchGroupDrawer(gameObject, this.bitActionSwitch, bitActionSwitchGroup);
+                new BitActionSwitchGroupDrawer(this.viewModel, gameObject, bitActionSwitchGroup);
             drawer.AddItem(gameObject, bitActionSwitchGroup);
             this.bitActionSwitchGroupDrawers.Add(drawer);
         }
 
         private void DrawHeader(Rect rect)
         {
-            EditorGUI.LabelField(rect, "BitActionSwitch Groups");
+            EditorGUI.LabelField(rect, L10n.Tr("BitActionSwitch Groups"));
         }
 
         private void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
@@ -77,33 +79,31 @@ namespace BitActionSwitch.Editor.Views
 
         public override void OnInspectorGUI()
         {
-            EditorCustomGUILayout.ObjectField("Avatar", this.viewModel.AvatarDescriptor, true, true,
-                x => { this.viewModel.AvatarDescriptor = x; }, () => this.viewModel.AvatarDescriptor != null);
+            EditorCustomGUILayout.ObjectField(L10n.Tr("Avatar"), this.viewModel.AvatarDescriptor, true, true,
+                x => { this.viewModel.AvatarDescriptor = x; }, this.viewModel.IsErrorAvatar);
 
             using (new EditorGUI.DisabledScope(this.viewModel.AvatarDescriptor == null))
             {
                 EditorGUI.indentLevel++;
 
-                EditorCustomGUILayout.ObjectField("FX Controller", this.viewModel.AnimatorController, false, true,
+                EditorCustomGUILayout.ObjectField(L10n.Tr("FX Controller"), this.viewModel.AnimatorController, false, true,
                     x => { this.viewModel.AnimatorController = x; },
-                    () => this.viewModel.AnimatorController != null);
+                    this.viewModel.IsErrorAnimator);
 
-                EditorCustomGUILayout.ObjectField("Parameters", this.viewModel.ExpressionParameters, false, true,
+                EditorCustomGUILayout.ObjectField(L10n.Tr("Parameters"), this.viewModel.ExpressionParameters, false, true,
                     x => { this.viewModel.ExpressionParameters = x; },
-                    () => this.viewModel.ExpressionParameters != null);
+                    this.viewModel.IsErrorParameter);
 
                 EditorGUI.indentLevel--;
             }
 
             EditorGUILayout.Space();
 
-            EditorCustomGUILayout.FolderPathField("Working Folder", this.viewModel.WorkingFolder,
-                "Save Anims Path", x => { this.viewModel.WorkingFolder = x; },
-                () => !string.IsNullOrEmpty(this.viewModel.WorkingFolder) &&
-                      this.viewModel.WorkingFolder.StartsWith("Assets"));
+            EditorCustomGUILayout.FolderPathField(L10n.Tr("Working Folder"), this.viewModel.WorkingFolder,
+                L10n.Tr("Save Anims Path"), x => { this.viewModel.WorkingFolder = x; },
+                this.viewModel.IsErrorWorkingFolder);
             
             this.reorderableList.DoLayoutList();
-            this.reorderableList.displayRemove = this.bitActionSwitch.bitActionSwitchGroups.Count > 1;
             this.reorderableList.displayAdd = this.viewModel.ExpressionParameters != null &&
                                               this.viewModel.ExpressionParameters.parameters.Count(x =>
                                                   !string.IsNullOrEmpty(x.name) &&
@@ -114,7 +114,7 @@ namespace BitActionSwitch.Editor.Views
 
             using (new EditorGUI.DisabledScope(!this.viewModel.ApplyCommand.CanExecute()))
             {
-                if (GUILayout.Button("Apply")) this.viewModel.ApplyCommand.Execute();
+                if (GUILayout.Button(L10n.Tr("Apply"))) this.viewModel.ApplyCommand.Execute();
             }
         }
     }

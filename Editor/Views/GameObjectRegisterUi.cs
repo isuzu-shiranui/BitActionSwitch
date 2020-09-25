@@ -1,5 +1,6 @@
 #if VRC_SDK_VRCSDK3 && UNITY_EDITOR
 using BitActionSwitch.Editor.Layout;
+using BitActionSwitch.Editor.ViewModels;
 using BitActionSwitch.Scripts;
 using UnityEditor;
 using UnityEditorInternal;
@@ -14,7 +15,7 @@ namespace BitActionSwitch.Editor.Views
 
         private GameObject targetAvatar;
 
-        public GameObjectRegisterUi(BitActionSwitchItem bitActionSwitchItem)
+        public GameObjectRegisterUi(BitActionSwitchWindowViewModel viewModel, BitActionSwitchItem bitActionSwitchItem)
         {
             this.bitActionSwitchItem = bitActionSwitchItem;
             
@@ -23,7 +24,7 @@ namespace BitActionSwitch.Editor.Views
 
             this.reorderableList.drawHeaderCallback += rect =>
             {
-                EditorGUI.LabelField(rect, "Target Game Objects");
+                EditorGUI.LabelField(rect, L10n.Tr("Target Game Objects"));
             };
 
             this.reorderableList.drawElementCallback += (rect, index, active, focused) =>
@@ -47,16 +48,7 @@ namespace BitActionSwitch.Editor.Views
                 EditorCustomGUI.ObjectField(objectFieldRect, "", bitActionSwitchItem.gameObjects[index], true, true,x =>
                 {
                     bitActionSwitchItem.gameObjects[index] = x;
-                }, () =>
-                {
-                    if (bitActionSwitchItem.gameObjects[index] == null) return false;
-
-                    if (this.targetAvatar == null) return false;
-
-                    return bitActionSwitchItem
-                        .gameObjects[index].transform
-                        .IsChildOf(this.targetAvatar.transform);
-                });
+                }, () =>viewModel.IsErrorRegisterGameObject(bitActionSwitchItem.gameObjects[index]));
             };
 
             this.reorderableList.onAddCallback += list => bitActionSwitchItem.gameObjects.Add(null);

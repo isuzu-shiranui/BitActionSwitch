@@ -1,6 +1,7 @@
 #if VRC_SDK_VRCSDK3 && UNITY_EDITOR
 using System.Linq;
 using BitActionSwitch.Editor.Layout;
+using BitActionSwitch.Editor.ViewModels;
 using BitActionSwitch.Scripts;
 using UnityEditor;
 using UnityEngine;
@@ -11,16 +12,18 @@ namespace BitActionSwitch.Editor.Views
     {
         private readonly GameObjectRegisterUi gameObjectRegisterUi;
         private readonly CustomAnimRegisterUi customAnimRegisterUi;
+        private readonly BitActionSwitchWindowViewModel viewModel;
         private readonly GameObject targetAvatar;
         private readonly BitActionSwitchGroup bitActionSwitchGroup;
         private readonly BitActionSwitchItem bitActionSwitchItem;
 
-        public BitActionSwitchItemDrawer(GameObject targetAvatar, BitActionSwitchGroup bitActionSwitchGroup, BitActionSwitchItem bitActionSwitchItem)
+        public BitActionSwitchItemDrawer(BitActionSwitchWindowViewModel viewModel, GameObject targetAvatar, BitActionSwitchGroup bitActionSwitchGroup, BitActionSwitchItem bitActionSwitchItem)
         {
+            this.viewModel = viewModel;
             this.targetAvatar = targetAvatar;
             this.bitActionSwitchGroup = bitActionSwitchGroup;
             this.bitActionSwitchItem = bitActionSwitchItem;
-            this.gameObjectRegisterUi = new GameObjectRegisterUi(bitActionSwitchItem);
+            this.gameObjectRegisterUi = new GameObjectRegisterUi(viewModel, bitActionSwitchItem);
             this.customAnimRegisterUi = new CustomAnimRegisterUi(bitActionSwitchItem);
         }
 
@@ -45,25 +48,16 @@ namespace BitActionSwitch.Editor.Views
             indicatorRect.height = 13f;
 
             var boxRect = position;
-            boxRect.height -= 12f;
+            boxRect.height -= this.bitActionSwitchItem.fold ? 12f : 1f;
             GUI.Box(boxRect, "");
 
             // Background
             EditorGUI.DrawRect(backgroundRect, EditorCustomGUI.HeaderBackgroundColor);
-            
-            // EditorGUI.DrawRect(indicatorRect, this.bitActionSwitchItem.isActiveDefault ? new Color(0.0f, 1f, 1f, 0.2f) :  new Color(1, 0.5f, 0.5f, 0.2f));
 
             // Title
             EditorCustomGUI.TextField(labelRect, "", this.bitActionSwitchItem.name, 
                 x => this.bitActionSwitchItem.name = x,
-                () =>
-                {
-                    var flag1 = !string.IsNullOrEmpty(this.bitActionSwitchItem.name);
-                    var flag2 = this.bitActionSwitchGroup.bitActionSwitchItems
-                        .GroupBy(x => x.name.ToLower())
-                        .Count(x => x.Count() > 1) == 0;
-                    return flag1 && flag2;
-                });
+                () => this.viewModel.IsErrorGroupItemName(this.bitActionSwitchItem.name));
 
             // foldout
             this.bitActionSwitchItem.fold = GUI.Toggle(foldoutRect, this.bitActionSwitchItem.fold, GUIContent.none, EditorStyles.foldout);
@@ -91,7 +85,7 @@ namespace BitActionSwitch.Editor.Views
             EditorCustomGUI.ObjectField(iconRect, "", this.bitActionSwitchItem.icon, false, false,
                 x => { this.bitActionSwitchItem.icon = x; });
 
-            EditorCustomGUI.EnumPopup<BitActionSwitchItem.RegisterType>(enumRect, "Register Type",
+            EditorCustomGUI.EnumPopup<BitActionSwitchItem.RegisterType>(enumRect, L10n.Tr("Register Type"),
                 this.bitActionSwitchItem.registerType, x => this.bitActionSwitchItem.registerType = x);
             
 

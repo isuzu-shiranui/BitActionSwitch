@@ -4,6 +4,7 @@ using System.Linq;
 using BitActionSwitch.Editor.Layout;
 using BitActionSwitch.Editor.Models;
 using BitActionSwitch.Editor.Utility;
+using BitActionSwitch.Editor.ViewModels;
 using BitActionSwitch.Scripts;
 using UnityEditor;
 using UnityEditorInternal;
@@ -13,16 +14,15 @@ namespace BitActionSwitch.Editor.Views
 {
     public class BitActionSwitchGroupDrawer
     {
-        private readonly Scripts.BitActionSwitch bitActionSwitch;
+        private readonly BitActionSwitchWindowViewModel viewModel;
         private readonly BitActionSwitchGroup bitActionSwitchGroup;
         private readonly ReorderableList reorderableList;
         private readonly List<BitActionSwitchItemDrawer> bitActionSwitchItemDrawers;
         private GUIStyle titleStyle;
         
-        public BitActionSwitchGroupDrawer(GameObject targetAvatar, Scripts.BitActionSwitch bitActionSwitch,
-            BitActionSwitchGroup bitActionSwitchGroup)
+        public BitActionSwitchGroupDrawer(BitActionSwitchWindowViewModel viewModel, GameObject targetAvatar, BitActionSwitchGroup bitActionSwitchGroup)
         {
-            this.bitActionSwitch = bitActionSwitch;
+            this.viewModel = viewModel;
             this.bitActionSwitchGroup = bitActionSwitchGroup;
             this.reorderableList =
                 new ReorderableList(bitActionSwitchGroup.bitActionSwitchItems, typeof(BitActionSwitchItem), true, true,
@@ -34,9 +34,9 @@ namespace BitActionSwitch.Editor.Views
                 };
 
             this.bitActionSwitchItemDrawers = bitActionSwitchGroup.bitActionSwitchItems
-                .Select(x => new BitActionSwitchItemDrawer(targetAvatar, this.bitActionSwitchGroup, x)).ToList();
+                .Select(x => new BitActionSwitchItemDrawer(viewModel, targetAvatar, this.bitActionSwitchGroup, x)).ToList();
 
-            this.reorderableList.onAddCallback += list => { this.AddItem(targetAvatar, bitActionSwitchGroup); };
+            this.reorderableList.onAddCallback += list => this.AddItem(targetAvatar, bitActionSwitchGroup);
 
             this.reorderableList.onRemoveCallback += list =>
             {
@@ -51,24 +51,8 @@ namespace BitActionSwitch.Editor.Views
             {
                 this.bitActionSwitchItemDrawers.ShiftElement(index, newIndex);
             };
-        }
-        
-        public static void Reorder(IList<BitActionSwitchItem> self, int oldIndex, int newIndex)
-        {
-            var element = self[oldIndex];
-            Debug.Log(element.name);
-
-            for (var i = 0; i < self.Count - 1; ++i)
-            {
-                if (i >= oldIndex) self[i] = self[i + 1];
-            }
             
-            for (var i = self.Count - 1; i > 0; --i)
-            {
-                if (i > newIndex) self[i] = self[i - 1];
-            }
-            
-            self[newIndex] = element;
+            this.reorderableList.onCanRemoveCallback = list => list.count > 1;
         }
 
         public void AddItem(GameObject targetAvatar, BitActionSwitchGroup bitActionSwitchGroup)
@@ -79,7 +63,7 @@ namespace BitActionSwitch.Editor.Views
                     "Object")
             };
             bitActionSwitchGroup.bitActionSwitchItems.Add(bitActionSwitchItem);
-            this.bitActionSwitchItemDrawers.Add(new BitActionSwitchItemDrawer(targetAvatar, this.bitActionSwitchGroup,
+            this.bitActionSwitchItemDrawers.Add(new BitActionSwitchItemDrawer(this.viewModel, targetAvatar, this.bitActionSwitchGroup,
                 bitActionSwitchItem));
         }
 
@@ -87,7 +71,11 @@ namespace BitActionSwitch.Editor.Views
         {
             var menuCount = this.bitActionSwitchGroup.expressionsMenu == null ? 0 : this.bitActionSwitchGroup.expressionsMenu.controls.Count - this.bitActionSwitchGroup.expressionsMenu.controls.Count(x => x.parameter.name != null && x.parameter.name.StartsWith(ActionSwitchParameters.PREFIX));
             var b = menuCount > 1;
-            EditorGUI.LabelField(rect, $"Group Items - {this.bitActionSwitchGroup.bitActionSwitchItems.Count.ToString()}/8, {(menuCount==0?"No":menuCount.ToString())} Menu{(menuCount > 1?"s":"")} in use other system");
+            var format = string.Format(L10n.Tr("Group Items - {0}/8, {1} Menu{2} in use other system"),
+                this.bitActionSwitchGroup.bitActionSwitchItems.Count.ToString(),
+                menuCount == 0 ? L10n.Tr("No") : menuCount.ToString(), menuCount > 1 ? "s" : "");
+            
+            EditorGUI.LabelField(rect, format);
         }
 
         private void DrawElement(Rect rect, int index, bool isActive, bool isFocused)
@@ -101,7 +89,7 @@ namespace BitActionSwitch.Editor.Views
             {
                 this.titleStyle = new GUIStyle(GUI.skin.box)
                 {
-                    fontStyle = FontStyle.Bold, normal = {textColor = Color.white}
+                    fontStyle = FontStyle.Bold, normal = {textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black}
                 };
             }
 
@@ -123,12 +111,10 @@ namespace BitActionSwitch.Editor.Views
             indicatorRect.width = 13f;
             indicatorRect.height = 13f;
             
-            GUI.Box(position, $"Group {index + 1}", this.titleStyle);
+            GUI.Box(position, string.Format(L10n.Tr("Group {0}"), index + 1), this.titleStyle);
 
             // Background
             EditorGUI.DrawRect(backgroundRect, EditorCustomGUI.HeaderBackgroundColor);
-            
-            // EditorGUI.DrawRect(indicatorRect, this.bitActionSwitchItem.isActiveDefault ? new Color(0.0f, 1f, 1f, 0.2f) :  new Color(1, 0.5f, 0.5f, 0.2f));
 
             // Title
             EditorGUI.LabelField(labelRect, "");
@@ -165,19 +151,12 @@ namespace BitActionSwitch.Editor.Views
             reorderable.width -= 4;
             reorderable.y += variableNameField.height + 2;
 
-            EditorCustomGUI.ObjectField(objectField, "Menu", this.bitActionSwitchGroup.expressionsMenu, false, true,
-                x => { this.bitActionSwitchGroup.expressionsMenu = x; }, () => this.bitActionSwitchGroup.expressionsMenu != null);
+            EditorCustomGUI.ObjectField(objectField, L10n.Tr("Menu"), this.bitActionSwitchGroup.expressionsMenu, false, true,
+                x => { this.bitActionSwitchGroup.expressionsMenu = x; }, () => this.viewModel.IsErrorExpressionMenu(this.bitActionSwitchGroup));
 
             EditorGUI.BeginDisabledGroup(true);
-            EditorCustomGUI.TextField(variableNameField, "Variable", this.bitActionSwitchGroup.variableName,
-                x => this.bitActionSwitchGroup.variableName = x, () => 
-                {
-                    var flag1 = !string.IsNullOrEmpty(this.bitActionSwitchGroup.variableName);
-                    var flag2 = this.bitActionSwitch.bitActionSwitchGroups
-                        .GroupBy(x => x.variableName.ToLower())
-                        .Count(x => x.Count() > 1) == 0;
-                    return flag1 && flag2;
-                });
+            EditorCustomGUI.TextField(variableNameField, L10n.Tr("Variable"), this.bitActionSwitchGroup.variableName,
+                x => this.bitActionSwitchGroup.variableName = x, () =>  this.viewModel.IsErrorVariableName(this.bitActionSwitchGroup.variableName));
             EditorGUI.EndDisabledGroup();
             
             this.reorderableList.DoList(reorderable);
