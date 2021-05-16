@@ -26,9 +26,9 @@ namespace BitActionSwitch.Editor.Models.VRCObject
                 style = VRCExpressionsMenu.Control.Style.Style1,
                 parameter = new VRCExpressionsMenu.Control.Parameter
                 {
-                    name = ActionSwitchParameters.ObjectNumParameterName
+                    name = ActionSwitchParameters.GetObjectActiveStatusParameterName(objectNum)
                 },
-                value = objectNum
+                value = 1
             });
             EditorUtility.SetDirty(this.expressionsMenu);
             AssetDatabase.SaveAssets();

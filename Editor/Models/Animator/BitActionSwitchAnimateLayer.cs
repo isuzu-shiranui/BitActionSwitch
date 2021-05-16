@@ -16,7 +16,7 @@ namespace BitActionSwitch.Editor.Models.Animator
             stateMachine.entryPosition = Style.EntryPosition;
             stateMachine.anyStatePosition = Style.AnyStatePosition;
             stateMachine.exitPosition = Style.ExitPosition;
-            
+
             var initState = stateMachine.AddStateDefaultParam("Init", Style.InitStatePosition);
             var staticBitActiveState = stateMachine.AddStateDefaultParam("Static Bit Active", Style.StaticBitActiveStatePosition);
             var staticBitInactiveState = stateMachine.AddStateDefaultParam("Static Bit Inactive", Style.StaticBitInactiveStatePosition);
@@ -43,50 +43,34 @@ namespace BitActionSwitch.Editor.Models.Animator
             }
 
             // transition
-            stateMachine.AddAnyTransitionDefaultParam(initState, AnimatorConditionMode.If, 0.0f, ActionSwitchParameters.InitializedParameterName);
-            
-            staticBitActiveState.AddTransitionDefaultParam(bitInactiveState, AnimatorConditionMode.Equals, index + 1 + groupIndex * 9,
-                ActionSwitchParameters.ObjectNumParameterName);
-            
-            staticBitInactiveState.AddTransitionDefaultParam(bitActiveState, AnimatorConditionMode.Equals, index + 1 + groupIndex * 9,
-                ActionSwitchParameters.ObjectNumParameterName);
+            var parameterName = ActionSwitchParameters.GetObjectActiveStatusParameterName(index + 1 + groupIndex * 9);
 
-            var activeToInactive = bitActiveState.AddTransitionDefaultParam(bitInactiveState, AnimatorConditionMode.Less, 0.5f,
-                ActionSwitchParameters.GetObjectFloatStatusParameterName(index + 1 + groupIndex * 9));
+            initState.AddTransitionDefaultParam(staticBitInactiveState, AnimatorConditionMode.IfNot, 0,
+                parameterName);
+
+            initState.AddTransitionDefaultParam(staticBitActiveState, AnimatorConditionMode.If, 0,
+                parameterName);
+
+            staticBitActiveState.AddTransitionDefaultParam(bitInactiveState, AnimatorConditionMode.IfNot, 0,
+                parameterName);
+            
+            staticBitInactiveState.AddTransitionDefaultParam(bitActiveState, AnimatorConditionMode.If, 0,
+                parameterName);
+
+            var activeToInactive = bitActiveState.AddExitTransitionDefaultParam();
             activeToInactive.hasExitTime = true;
             activeToInactive.exitTime = 1.0f;
 
-            var inactiveToActive = bitInactiveState.AddTransitionDefaultParam(bitActiveState, AnimatorConditionMode.Greater, 0.5f,
-                ActionSwitchParameters.GetObjectFloatStatusParameterName(index + 1 + groupIndex * 9));
+            var inactiveToActive = bitInactiveState.AddExitTransitionDefaultParam();
             inactiveToActive.hasExitTime = true;
             inactiveToActive.exitTime = 1.0f;
-            
-
-            var conditions = new List<AnimatorCondition>();
-            
-            for (var i = 0; i < 1 << bitActionSwitchGroup.bitActionSwitchItems.Count; i++)
-            {
-                var targetDigit = ((1 << index) & i) != 0;
-                if (!targetDigit) continue;// 1,3,5,7
-                
-                initState.AddTransitionDefaultParam(staticBitActiveState, AnimatorConditionMode.Equals, i,
-                    bitActionSwitchGroup.variableName);
-                conditions.Add(new AnimatorCondition
-                {
-                    mode = AnimatorConditionMode.NotEqual,
-                    threshold = i,
-                    parameter = bitActionSwitchGroup.variableName
-                });
-            }
-            
-            initState.AddTransitionDefaultParam(staticBitInactiveState, conditions.ToArray());
         }
         
         private static class Style
         {
             public static readonly Vector3 AnyStatePosition = new Vector3(275, -100);
             public static readonly Vector3 EntryPosition = new Vector3(25, -100);
-            public static readonly Vector3 ExitPosition = new Vector3(-226, -100);  
+            public static readonly Vector3 ExitPosition = new Vector3(25, 300);  
             
             public static readonly Vector3 InitStatePosition = new Vector3(0, 0);
             public static readonly Vector3 StaticBitActiveStatePosition = new Vector3(-250, 100);
