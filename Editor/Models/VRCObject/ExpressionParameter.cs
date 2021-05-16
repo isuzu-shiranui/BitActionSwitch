@@ -33,14 +33,8 @@ namespace BitActionSwitch.Editor.Models.VRCObject
 
         public void RemoveExistExpressionParameters()
         {
-            for (var index = 0; index < this.expressionParameters.parameters.Length; index++)
-            {
-                if(!this.expressionParameters.parameters[index].name.StartsWith(ActionSwitchParameters.PREFIX)) continue;
-                this.expressionParameters.parameters[index] = new VRCExpressionParameters.Parameter
-                {
-                    name = "", valueType = VRCExpressionParameters.ValueType.Int
-                };
-            }
+            this.expressionParameters.parameters =
+                this.expressionParameters.parameters.Where(parameter => !parameter.name.StartsWith(ActionSwitchParameters.PREFIX)).ToArray();
         }
     }
 }

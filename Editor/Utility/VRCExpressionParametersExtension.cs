@@ -1,5 +1,6 @@
 #if VRC_SDK_VRCSDK3 && UNITY_EDITOR
 using VRC.SDK3.Avatars.ScriptableObjects;
+using System.Collections.Generic;
 
 namespace BitActionSwitch.Editor.Utility
 {
@@ -7,19 +8,11 @@ namespace BitActionSwitch.Editor.Utility
     {
         public static bool Add(this VRCExpressionParameters parameters, VRCExpressionParameters.Parameter parameter)
         {
-            var emptyFirstIndex = 0;
-            for (var i = 0; i < parameters.parameters.Length; i++)
-            {
-                if (!string.IsNullOrEmpty(parameters.parameters[i].name)) continue;
-                emptyFirstIndex = i;
-                break;
-            }
-            
-            if(emptyFirstIndex == parameters.parameters.Length) return false;
 
-            parameters.parameters[emptyFirstIndex] = parameter;
-
-            return true;
+            var newParameters = new List<VRCExpressionParameters.Parameter>(parameters.parameters);
+            newParameters.Add(parameter);
+            parameters.parameters = newParameters.ToArray();
+            return parameters.CalcTotalCost() <= VRCExpressionParameters.MAX_PARAMETER_COST;
         }
     }
 }
