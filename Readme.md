@@ -1,5 +1,5 @@
 # 概要
-このツールは、VRChat Avatars 3.0環境下で使用するアバターのオブジェクト切り替えシステムを構築、またその設定を簡略化、効率化することを目的とした、Unityエディタ上で動作するツールです。オブジェクトの状態をビットにして管理します。
+このツールは、VRChat Avatars 3.0環境下で使用するアバターのオブジェクト切り替えシステムを構築、またその設定を簡略化、効率化することを目的とした、Unityエディタ上で動作するツールです。~~オブジェクトの状態をビットにして管理します。~~
 
 本ツールの特徴として、以下の点があります。
 * 少ないパラメーターで大量のオブジェクトの状態を同時に切り替える事ができる。
@@ -15,3 +15,5 @@ https://docs.google.com/document/d/15LbBSmKl798jN7_FA4wI03edudzhsb4iOVF2-WxgkZ0/
 Animatorギミック製作者 : くすすすすす(https://twitter.com/kazenainannna)
 
 自動化、Editor拡張開発 : いすず(https://twitter.com/Shiranui_Isuzu_)
+
+Avatars 3.0 bool対応 : 奈良阪(https://twitter.com/narazaka)
