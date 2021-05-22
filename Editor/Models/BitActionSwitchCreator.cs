@@ -59,12 +59,12 @@ namespace BitActionSwitch.Editor.Models
                 var expressionMenu = new ExpressionMenu(bitActionSwitchGroup.expressionsMenu);
 
                 expressionMenu.RemoveExistExpressionMenuControls();
-                expressionParameter.AddExpressionParameters(bitActionSwitchGroup.variableName);
 
                 var animationClips = this.CreateAnimationClips(bitActionSwitchGroup, i);
 
                 for (var j = 0; j < bitActionSwitchGroup.bitActionSwitchItems.Count; j++)
                 {
+                    expressionParameter.AddExpressionParameters(ActionSwitchParameters.GetObjectActiveStatusParameterName(j + 1 + i * 9));
                     expressionMenu.AddExpressionMenuControl(bitActionSwitchGroup.bitActionSwitchItems[j], j + 1 + i * 9);
                 }
 

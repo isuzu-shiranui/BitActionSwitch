@@ -23,9 +23,6 @@ namespace BitActionSwitch.Editor.Models.Animator
         {
             this.AddAnimatorParameters(bitActionSwitchGroup, groupIndex);
 
-            var mainLayer = this.animatorController.AddLayerDefault(ActionSwitchParameters.GetLayerName(groupIndex + 1));
-            BitActionSwitchMainLayer.Create(mainLayer.stateMachine, bitActionSwitchGroup, groupIndex);
-
             for (var i = 0; i < bitActionSwitchGroup.bitActionSwitchItems.Count; i++)
             {
                 var animateLayer = this.animatorController.AddLayerDefault(ActionSwitchParameters.GetObjectStatusLayerName(i + 1 + groupIndex * 9));
@@ -35,66 +32,6 @@ namespace BitActionSwitch.Editor.Models.Animator
 
         private void AddAnimatorParameters(BitActionSwitchGroup bitActionSwitchGroup, int groupIndex)
         {
-            if(this.animatorController.parameters.All(x => x.name != ActionSwitchParameters.VRCSeatedParameterName))
-            {
-                this.animatorController.AddParameter(new AnimatorControllerParameter
-                {
-                    type = AnimatorControllerParameterType.Bool,
-                    name = ActionSwitchParameters.VRCSeatedParameterName,
-                    defaultBool = false
-                });
-            }
-
-            if(this.animatorController.parameters.All(x => x.name != ActionSwitchParameters.VRCIsLocalParameterName))
-            {
-                this.animatorController.AddParameter(new AnimatorControllerParameter
-                {
-                    type = AnimatorControllerParameterType.Bool,
-                    name = ActionSwitchParameters.VRCIsLocalParameterName,
-                    defaultBool = false
-                });
-            }
-
-            if (this.animatorController.parameters.All(x => x.name != bitActionSwitchGroup.variableName))
-            {
-                this.animatorController.AddParameter(new AnimatorControllerParameter
-                {
-                    type = AnimatorControllerParameterType.Int,
-                    name = bitActionSwitchGroup.variableName,
-                    defaultInt = 0
-                });
-            }
-
-            if (this.animatorController.parameters.All(x => x.name != ActionSwitchParameters.ObjectNumParameterName))
-            {
-                this.animatorController.AddParameter(new AnimatorControllerParameter
-                {
-                    type = AnimatorControllerParameterType.Int,
-                    name = ActionSwitchParameters.ObjectNumParameterName,
-                    defaultInt = 0
-                });
-            }
-
-            if (this.animatorController.parameters.All(x => x.name != ActionSwitchParameters.ThroughTransitionParameterName))
-            {
-                this.animatorController.AddParameter(new AnimatorControllerParameter
-                {
-                    type = AnimatorControllerParameterType.Bool,
-                    name = ActionSwitchParameters.ThroughTransitionParameterName,
-                    defaultBool = true
-                });
-            }
-
-            if (this.animatorController.parameters.All(x => x.name != ActionSwitchParameters.InitializedParameterName))
-            {
-                this.animatorController.AddParameter(new AnimatorControllerParameter
-                {
-                    type = AnimatorControllerParameterType.Bool,
-                    name = ActionSwitchParameters.InitializedParameterName,
-                    defaultBool = false
-                });
-            }
-
             for (var i = 0; i < bitActionSwitchGroup.bitActionSwitchItems.Count; i++)
             {
                 this.animatorController.AddParameter(new AnimatorControllerParameter
@@ -102,13 +39,6 @@ namespace BitActionSwitch.Editor.Models.Animator
                     type = AnimatorControllerParameterType.Bool,
                     name = ActionSwitchParameters.GetObjectActiveStatusParameterName(i + 1 + groupIndex * 9),
                     defaultBool = false
-                });
-                
-                this.animatorController.AddParameter(new AnimatorControllerParameter
-                {
-                    type = AnimatorControllerParameterType.Float,
-                    name = ActionSwitchParameters.GetObjectFloatStatusParameterName(i + 1 + groupIndex * 9),
-                    defaultFloat = 0.0f
                 });
             }
         }

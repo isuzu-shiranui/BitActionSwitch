@@ -153,11 +153,6 @@ namespace BitActionSwitch.Editor.Views
 
             EditorCustomGUI.ObjectField(objectField, L10n.Tr("Menu"), this.bitActionSwitchGroup.expressionsMenu, false, true,
                 x => { this.bitActionSwitchGroup.expressionsMenu = x; }, () => this.viewModel.IsErrorExpressionMenu(this.bitActionSwitchGroup));
-
-            EditorGUI.BeginDisabledGroup(true);
-            EditorCustomGUI.TextField(variableNameField, L10n.Tr("Variable"), this.bitActionSwitchGroup.variableName,
-                x => this.bitActionSwitchGroup.variableName = x, () =>  this.viewModel.IsErrorVariableName(this.bitActionSwitchGroup.variableName));
-            EditorGUI.EndDisabledGroup();
             
             this.reorderableList.DoList(reorderable);
 

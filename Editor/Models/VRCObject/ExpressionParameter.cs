@@ -17,19 +17,12 @@ namespace BitActionSwitch.Editor.Models.VRCObject
 
         public bool AddExpressionParameters(string bitStatusParameter)
         {
-            if (this.expressionParameters.FindParameter(ActionSwitchParameters.ObjectNumParameterName) == null)
-            {
-                if (!this.expressionParameters.Add(new VRCExpressionParameters.Parameter
-                {
-                    name = ActionSwitchParameters.ObjectNumParameterName,
-                    valueType = VRCExpressionParameters.ValueType.Int
-                })) return true;
-            }
-
             if (!this.expressionParameters.Add(new VRCExpressionParameters.Parameter
             {
                 name = bitStatusParameter,
-                valueType = VRCExpressionParameters.ValueType.Int
+                valueType = VRCExpressionParameters.ValueType.Bool,
+                defaultValue = 0,
+                saved = true,
             }))
             {
                 this.RemoveExistExpressionParameters();
@@ -40,14 +33,8 @@ namespace BitActionSwitch.Editor.Models.VRCObject
 
         public void RemoveExistExpressionParameters()
         {
-            for (var index = 0; index < this.expressionParameters.parameters.Length; index++)
-            {
-                if(!this.expressionParameters.parameters[index].name.StartsWith(ActionSwitchParameters.PREFIX)) continue;
-                this.expressionParameters.parameters[index] = new VRCExpressionParameters.Parameter
-                {
-                    name = "", valueType = VRCExpressionParameters.ValueType.Int
-                };
-            }
+            this.expressionParameters.parameters =
+                this.expressionParameters.parameters.Where(parameter => !parameter.name.StartsWith(ActionSwitchParameters.PREFIX)).ToArray();
         }
     }
 }

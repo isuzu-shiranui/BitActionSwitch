@@ -25,12 +25,12 @@ namespace BitActionSwitch.Editor.Models.Animation
                 if (activate)
                 {
                     curve.AddKey(0.00f, t.activeSelf ? 1 : 0);
-                    curve.AddKey(1.00f, t.activeSelf ? 1 : 0);
+                    curve.AddKey(1f / clip.frameRate, t.activeSelf ? 1 : 0);
                 }
                 else
                 {
                     curve.AddKey(0.00f, t.activeSelf ? 0 : 1);
-                    curve.AddKey(1.00f, t.activeSelf ? 0 : 1);
+                    curve.AddKey(1f / clip.frameRate, t.activeSelf ? 0 : 1);
                 }
                 
             
